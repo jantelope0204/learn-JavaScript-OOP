@@ -20,6 +20,8 @@
     //接下来的的食物对象都要随机方式出现在屏幕上 构建render 方法
     //参数map 存放
     Food.prototype.render = function (map) {
+        //页面保证只有一个食物对象 每创建一个 删除旧的
+        remove()
         // 随机食物的位置，map.宽度/food.宽度，总共有多少分food的宽度，随机一下。然后再乘以food的宽度
         this.x = parseInt(Math.random() * (map.offsetWidth / this.width));
         this.y = parseInt(Math.random() * (map.offsetHeight / this.height));
@@ -33,6 +35,13 @@
         div.style.top = this.y + 'px'
         div.style.backgroundColor = this.color
         elements.push(div)
+    }
+    function remove(){
+        for (let i = 0; i < elements.length; i++) {
+            let element = elements[i];
+            element.parentNode.removeChild(element);
+            elements.splice(i, 1);
+        }
     }
     //通过自调用函数，进行封装，通过window暴露Food对象
     window.Food = Food
@@ -76,11 +85,54 @@
     }
     //共有行为 移动
     Snake.prototype.move = function (food, direction) {
+        //初始化之前删除旧有的蛇对象
+        remove()
         //蛇头增加一节 蛇尾减少一节
-        //todo
-
+        let i = this.body.length - 1;
+        for(; i > 0; i--) {
+            this.body[i].x = this.body[i-1].x
+            this.body[i].y = this.body[i-1].y
+        }
+        // 根据移动的方向，决定蛇头如何处理
+        switch (direction){
+            case 'left':
+                this.body[0].x -= 1;
+                break;
+            case 'right':
+                this.body[0].x += 1;
+                break;
+            case 'top':
+                this.body[0].y -= 1;
+                break;
+            case 'bottom':
+                this.body[0].y += 1;
+                break;
+        }
+        // 在移动的过程中判断蛇是否吃到食物
+        // 如果蛇头和食物的位置重合代表吃到食物
+        // 食物的坐标是像素，蛇的坐标是几个宽度，进行转换
+        let headX = this.body[0].x * this.width
+        let headY = this.body[1].y * this.height
+        if (headX === food.x && headY === food.y) {
+            //蛇尾增加一个div
+            let lastDiv = this.body[this.body.length-1]
+            this.body.push({
+                x: lastDiv.x,
+                y: lastDiv.y,
+                color: lastDiv.color
+            })
+        }
     }
-
+    function remove(){
+        //删除蛇对象保证页只有一条蛇
+        let i = elements.length-1
+        for (; i >= 0; i--) {
+            elements[i].parentNode.removeChild(elements[i])
+            elements.splice(i, 1);
+        }
+    }
+    //往外暴露snake对象
+    window.Snake = Snake
 })(window,undefined)
 
 
